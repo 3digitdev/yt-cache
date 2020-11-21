@@ -4,31 +4,11 @@ import re
 import os
 import pathlib
 import subprocess
-import logging
+import yt_utils
 
-from typing import Union
-from subprocess import CompletedProcess, CalledProcessError
-from logging.handlers import TimedRotatingFileHandler
+from subprocess import CalledProcessError
 
 BASE_YT_URL = "https://www.youtube.com/feeds/videos.xml?channel_id={0}"
-BASE_SHARE = "/data/share"
-BASE_CMD = ["youtube-dl", "-i", "-f", "mp4", "-o"]
-YTDL_FMT = "{0}/%(title)s.%(ext)s"
-LOGGER = logging.getLogger("YT-Cache Log")
-
-
-def log_result(result: Union[CompletedProcess, CalledProcessError]) -> None:
-    """
-    Parses how youtube-dl likes to format their STDOUT/STDERR thanks to ANSI codes
-    Outputs both outputs to logging
-    """
-
-    def parse_output(out: bytes) -> str:
-        parsed = out.decode("utf-8").rstrip("\n").replace("\r\x1b[K", "\n").split("\n")
-        return "\n".join([x for x in parsed if x != ""])
-
-    LOGGER.info("STDOUT ~>\n" + parse_output(result.stdout))
-    LOGGER.error("STDERR ~>\n" + parse_output(result.stderr))
 
 
 def download_video(feed_video: feedparser.FeedParserDict, dest_path: str) -> None:
@@ -42,15 +22,15 @@ def download_video(feed_video: feedparser.FeedParserDict, dest_path: str) -> Non
     LOGGER.info(f"Downloading video '{feed_video.title}'")
     try:
         result = subprocess.run(
-            BASE_CMD + [YTDL_FMT.format(dest_path), feed_video.yt_videoid],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            yt_utils.BASE_CMD
+            + [yt_utils.YTDL_FMT.format(dest_path), feed_video.yt_videoid],
+            capture_output=True,
             check=True,
         )
     except CalledProcessError as cpe:
         LOGGER.error("'youtube-dl' command raised a non-zero exit status")
         result = cpe
-    log_result(result)
+    yt_utils.log_result(result)
 
 
 def find_series(channel, video):
@@ -90,7 +70,7 @@ def process_channel(channel):
             channel["checked_ids"]["skipped"].append(video.yt_videoid)
             continue
         # Create the series folder if it doesn't already exist
-        folder = os.path.join(BASE_SHARE, channel["name"], series["folder"])
+        folder = os.path.join(yt_utils.BASE_SHARE, channel["name"], series["folder"])
         pathlib.Path(folder).mkdir(parents=True, exist_ok=True)
         download_video(video, folder)
         channel["checked_ids"]["downloaded"].append(video.yt_videoid)
@@ -98,15 +78,8 @@ def process_channel(channel):
 
 
 if __name__ == "__main__":
-    LOGGER.setLevel(logging.INFO)
-    handler = TimedRotatingFileHandler(
-        filename=os.path.join(BASE_SHARE, "yt-cache.log"), when="W6"
-    )
-    handler.setFormatter(
-        logging.Formatter("%(levelname)-5s :: [%(asctime)s]  %(message)s")
-    )
-    LOGGER.addHandler(handler)
-    cfg_file = os.path.join(BASE_SHARE, "channels.json")
+    LOGGER = yt_utils.config_logger(log_file="yt-cache.log")
+    cfg_file = os.path.join(yt_utils.BASE_SHARE, "channels.json")
     with open(cfg_file, "r") as f:
         channels = json.load(fp=f)
     updated_channels = [process_channel(channel) for channel in channels]
