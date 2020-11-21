@@ -9,6 +9,8 @@ LOGGER = logging.getLogger("YT-Cache Log")
 BASE_SHARE = "/data/share"
 BASE_CMD = ["youtube-dl", "-i", "-f", "mp4", "-o"]
 YTDL_FMT = "{0}/%(title)s.%(ext)s"
+API_KEY = os.getenv("YT_API_KEY")
+BASE_URL = "https://youtube.googleapis.com/youtube/v3/{0}"
 
 
 def log_result(result: Union[CompletedProcess, CalledProcessError]) -> None:

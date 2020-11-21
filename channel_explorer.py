@@ -5,11 +5,8 @@ import sys
 import yt_utils
 import json
 
-from bullet import Bullet, ScrollBar, Input
+from bullet import Bullet, ScrollBar, Input, YesNo
 from typing import Union, List
-
-API_KEY = os.getenv("YT_API_KEY")
-BASE_URL = "https://youtube.googleapis.com/youtube/v3/{0}"
 
 
 class Playlist:
@@ -53,7 +50,7 @@ def get_playlists(
     *, channel_id: str = "", playlist_id: str = "", page: str = ""
 ) -> Details:
     params = {
-        "key": API_KEY,
+        "key": yt_utils.API_KEY,
         "part": "id,contentDetails,snippet",
         "maxResults": 100,
         "pageToken": page,
@@ -63,7 +60,7 @@ def get_playlists(
     else:
         params["channelId"] = channel_id
     results = requests.get(
-        url=BASE_URL.format("playlists"),
+        url=yt_utils.BASE_URL.format("playlists"),
         params=params,
         headers={"Content-type": "application/json"},
     ).json()
@@ -80,7 +77,7 @@ def get_playlists(
 
 def get_videos(*, playlist_id: str = "", video_id: str = "", page: str = "") -> Details:
     params = {
-        "key": API_KEY,
+        "key": yt_utils.API_KEY,
         "part": "id,contentDetails,snippet",
         "maxResults": 50,
         "pageToken": page,
@@ -90,7 +87,7 @@ def get_videos(*, playlist_id: str = "", video_id: str = "", page: str = "") -> 
     else:
         params["playlistId"] = playlist_id
     results = requests.get(
-        url=BASE_URL.format("playlistItems"),
+        url=yt_utils.BASE_URL.format("playlistItems"),
         params=params,
         headers={"Content-type": "application/json"},
     ).json()
@@ -148,7 +145,7 @@ def clear():
 
 
 if __name__ == "__main__":
-    LOGGER = yt_utils.config_logger(log_file="yt-get.log")
+    LOGGER = yt_utils.config_logger(log_file="yt-channels.log")
     with open(os.path.join(yt_utils.BASE_SHARE, "channels.json"), "r") as cf:
         channels = {c["name"]: c["id"] for c in json.load(fp=cf)}
     ch = Bullet(
@@ -173,6 +170,26 @@ if __name__ == "__main__":
     playlist = [pl for pl in details.items if pl.title == title][0]
     fp = Input(f"Enter a folder name ({playlist.title}): ", default=playlist.title)
     f_folder = fp.launch()
+    addp = YesNo(
+        prompt="Add this playlist to be monitored? (y/N)", default="N", prompt_prefix=""
+    )
+    should_monitor = addp.launch()
+    if should_monitor:
+        regp = Input(
+            prompt="What should the regex be for the videos in this playlist?\n"
+        )
+        reg = regp.launch()
+        cfg_path = os.path.join(yt_utils.BASE_SHARE, "channels.json")
+        with open(cfg_path, "r") as inf:
+            current_cfg = json.load(fp=inf)
+        for i in range(len(current_cfg)):
+            if current_cfg[i]["name"] != channel:
+                continue
+            current_cfg[i]["series_to_check"].append(
+                {"folder": f_folder, "title_format": reg}
+            )
+        with open(cfg_path, "w") as outf:
+            json.dump(current_cfg, fp=outf, indent=4)
     details, vp = video_prompt(playlist.id)
     clear()
     video = vp.launch()
