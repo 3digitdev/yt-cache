@@ -13,7 +13,7 @@ from logging.handlers import TimedRotatingFileHandler
 BASE_YT_URL = "https://www.youtube.com/feeds/videos.xml?channel_id={0}"
 BASE_SHARE = "/data/share"
 BASE_CMD = ["youtube-dl", "-i", "-f", "mp4", "-o"]
-YTDL_FMT = "{0}/%(titles).%(ext)s"
+YTDL_FMT = "{0}/%(title)s.%(ext)s"
 LOGGER = logging.getLogger("YT-Cache Log")
 
 

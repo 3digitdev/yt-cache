@@ -13,4 +13,4 @@ COPY check_feed.py ./
 ENTRYPOINT ["python3", "check_feed.py"]
 
 # Run command:
-# docker run -it --rm --name yt-cache --mount type=bind,source=/data/share,target=/data/share 3digitdev/dev/yt-cache:latest
+# docker run -it --rm --name yt-cache --mount type=bind,source=/data/share,target=/data/share 3digitdev/yt-cache:latest
