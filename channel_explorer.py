@@ -6,7 +6,7 @@ import yt_utils
 import json
 
 from bullet import Bullet, ScrollBar, Input, YesNo
-from typing import Union, List
+from typing import Union, List, Tuple
 
 
 class Playlist:
@@ -109,7 +109,7 @@ def get_videos(*, playlist_id: str = "", video_id: str = "", page: str = "") -> 
     return details
 
 
-def playlist_prompt(channel_id: str, page_token: str = ""):
+def playlist_prompt(channel_id: str, page_token: str = "") -> Tuple[Details, ScrollBar]:
     playlists = get_playlists(channel_id=channel_id, page=page_token)
     pl_choices = []
     if playlists.prev_page != "":
@@ -127,7 +127,7 @@ def playlist_prompt(channel_id: str, page_token: str = ""):
     )
 
 
-def video_prompt(playlist_id: str, page_token: str = ""):
+def video_prompt(playlist_id: str, page_token: str = "") -> Tuple[Details, ScrollBar]:
     videos = get_videos(playlist_id=playlist_id, page=page_token)
     v_choices = ["[Range]", "[ALL VIDEOS]"]
     if videos.prev_page != "":
@@ -140,7 +140,7 @@ def video_prompt(playlist_id: str, page_token: str = ""):
     )
 
 
-def clear():
+def clear() -> None:
     sys.stdout.write("\u001b[2J")
 
 

@@ -6,6 +6,7 @@ import pathlib
 import subprocess
 import yt_utils
 
+from typing import Dict, Any
 from subprocess import CalledProcessError
 
 BASE_YT_URL = "https://www.youtube.com/feeds/videos.xml?channel_id={0}"
@@ -33,7 +34,9 @@ def download_video(feed_video: feedparser.FeedParserDict, dest_path: str) -> Non
     yt_utils.log_result(result)
 
 
-def find_series(channel, video):
+def find_series(
+    channel: Dict[str, Any], video: feedparser.FeedParserDict
+) -> Dict[str, Any]:
     """
     Match a given video against the list of series we are matching against in the config
     Matches using a regex against the title of the video
@@ -46,7 +49,7 @@ def find_series(channel, video):
             return series
 
 
-def process_channel(channel):
+def process_channel(channel: Dict[str, Any]) -> Dict[str, Any]:
     """
     Get the latest videos from a channel's RSS feed and parse them
     If a video is new and matches desired series title formats, download and store it
