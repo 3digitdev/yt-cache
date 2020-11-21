@@ -1,0 +1,16 @@
+[
+    {
+        "id": "UC-7oMv6E4Uz2tF51w5Sj49w",
+        "name": "Play Frame",
+        "checked_ids": {
+        "skipped": [],
+        "downloaded": []
+        },
+        "series_to_check": [
+        {
+            "folder": "Spiritfarer",
+            "title_format": "^Spiritfarer \-"
+        }
+        ]
+    }
+]
